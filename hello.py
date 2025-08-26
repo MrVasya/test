@@ -9,7 +9,7 @@ USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = 0  # 600 ms
+DELAY_START = 0.6  # 600 ms
 DELAY_END = 0.9  # 900 ms
 STEP = 0.01  # 20 ms шаг
 
@@ -62,9 +62,9 @@ for delay in [
     t_fetch = threading.Thread(target=fetch_file, args=(result,))
     t_update = threading.Thread(target=trigger_update)
 
-    t_fetch.start()
-    time.sleep(delay)
     t_update.start()
+    time.sleep(delay)
+    t_fetch.start()
 
     t_fetch.join()
     t_update.join()
