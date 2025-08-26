@@ -16,8 +16,10 @@ FLAG = "FLAG"      # что ищем в теле
 
 def fetch_file(result_container):
     try:
+        print('starting fetch file...')
         url = f"{BASE_URL}/repo/{USER}/{NAME}/file/{FILENAME}"
         r = requests.get(url)
+        print('got file contents')
         r.raise_for_status()
         if FLAG in r.text:
             result_container['success'] = True
@@ -30,6 +32,7 @@ def trigger_update():
         url = f"{BASE_URL}/repo/{USER}/{NAME}/pull"
         data = {"remote": "origin", "branch": "main"}
         requests.post(url, data=data)
+        print('repo updated')
     except Exception:
         pass
 
