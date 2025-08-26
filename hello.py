@@ -34,7 +34,7 @@ def trigger_update():
         pass
 
 def run_script(path):
-    subprocess.run([path], check=True)
+    subprocess.run([path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
 for delay in [DELAY_START + i*STEP for i in range(int((DELAY_END-DELAY_START)/STEP) + 1)]:
     print(f"Trying delay: {int(delay*1000)} ms")
