@@ -46,7 +46,7 @@ for delay in [DELAY_START + i*STEP for i in range(int((DELAY_END-DELAY_START)/ST
     trigger_update()
 
     # Добавляем флаг
-    run_script("./add_flag.sh")
+    run_script("./send_flag.sh")
 
     # Результат гонки
     result = {'success': False, 'content': ''}
