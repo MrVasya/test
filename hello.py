@@ -7,7 +7,7 @@ USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = 0     # 0 секунд
+DELAY_START = -1     # 0 секунд
 DELAY_END = 1     # 0.9 секунд
 STEP = 0.01         # 10 мс
 
@@ -55,9 +55,14 @@ async def try_delay(delay):
 
     async with httpx.AsyncClient() as client:
         # Запускаем update и fetch_file почти одновременно с задержкой
-        task_update = asyncio.create_task(trigger_update(client))
-        await asyncio.sleep(delay)
-        task_fetch = asyncio.create_task(fetch_file(client, result))
+        if delay <= 0:
+            task_fetch = asyncio.create_task(fetch_file(client, result))
+            await asyncio.sleep(-delay)
+            task_update = asyncio.create_task(trigger_update(client))
+        else:
+            task_update = asyncio.create_task(trigger_update(client))
+            await asyncio.sleep(delay)
+            task_fetch = asyncio.create_task(fetch_file(client, result))
 
         # Ждём завершения обоих
         await asyncio.gather(task_update, task_fetch)
