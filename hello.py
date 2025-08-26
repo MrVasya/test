@@ -7,9 +7,9 @@ USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = 0.5     # 0 секунд
+DELAY_START = 0     # 0 секунд
 DELAY_END = 1     # 0.9 секунд
-STEP = 0.02         # 10 мс
+STEP = 0.01         # 10 мс
 
 FLAG = "FLAG"       # что ищем в теле
 
