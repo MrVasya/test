@@ -37,6 +37,7 @@ async def trigger_update(client):
     try:
         url = f"{BASE_URL}/repo/{USER}/{NAME}/pull"
         data = {"remote": "origin", "branch": "main"}
+        print('starting repo update')
         await client.post(url, data=data)
         print("repo updated", flush=True)
     except Exception:
