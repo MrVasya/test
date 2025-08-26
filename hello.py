@@ -9,7 +9,7 @@ USER = "MrVasya"
 NAME = "test"
 FILENAME = "flaglink"
 
-DELAY_START = 0.6  # 600 ms
+DELAY_START = 0.4  # 600 ms
 DELAY_END = 0.9  # 900 ms
 STEP = 0.01  # 20 ms шаг
 
